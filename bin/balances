@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+require "irb"
+require "irb/completion"
+require "bundler"
+Bundler.require
+require "./lib/evebox"
+
+setup_tokens
+
+chars = $eve.Characters.characters
+
+$eve.scope = "char"
+chars.each do |c|
+    balance = $eve.AccountBalance("characterID" => c.characterID).accounts.select { |a| a.accountKey == "1000" }.first.balance
+    puts "#{c.name} => #{balance}"
+end
+
