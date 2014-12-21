@@ -7,5 +7,5 @@ Bundler.require
 require "./lib/evebox"
 
 setup_tokens
-puts character_balances
+update_balance_sheet
 

@@ -2,7 +2,7 @@ require "eaal"
 
 GOOGLE_CLIENT_ID = "357234107497-redpuvjaq8glmiponrcd1786jfrgpdo9.apps.googleusercontent.com"
 GOOGLE_CLIENT_SECRET = "bLhe-QIvLKIWjaLcigxlEkcP"
-SPREADSHEET_ID = ''
+SPREADSHEET_ID = ENV["SPREADSHEET_ID"] # FIXME
 
 # Monkey patch
 ENV.instance_eval do
@@ -107,10 +107,64 @@ def setup_tokens
   puts "http://wiki.eve-id.net/APIv2_Page_Index"
 end
 
+def character_balances
+  chars = $eve.Characters.characters
+
+  $eve.scope = "char"
+  balances = {}
+  chars.each do |c|
+      balances[c.name] = $eve.AccountBalance("characterID" => c.characterID).accounts.select { |a| a.accountKey == "1000" }.first.balance
+  end
+  balances
+end
+
 def get_spreadsheet(spreadsheet_id)
   auth_token = OAuth2::AccessToken.from_hash(oauth2_client, {:refresh_token => ENV['DRIVE_REFRESH_TOKEN']})
   auth_token = auth_token.refresh!
   session = GoogleDrive.login_with_oauth(auth_token.token)
   session.spreadsheet_by_key(spreadsheet_id)
+end
+
+def update_balance_sheet()
+  raise "No spreadsheet configured" if ENV["SPREADSHEET_ID"].nil?
+  sheet_id = ENV["SPREADSHEET_ID"]
+
+  spreadsheet = get_spreadsheet(sheet_id)
+  w = spreadsheet.worksheets.first  # FIXME
+
+  # fetch the balances from Eve
+  balances = character_balances
+
+  # initialize the header if it hasn't been set before
+  headers = ["Date"] + balances.keys
+  w.list.keys = headers if w.list.keys == []
+
+  # check that headers match
+  # if they change, it's probably because a list was renamed, added, moved, or removed
+  unless w.list.keys == headers
+    puts "#{board_name}: WARNING WARNING WARNING"
+    puts "#{board_name}: Headers do not match; it's likely the board layout changed"
+    puts "#{board_name}: Please fix the spreadsheet before continuing; skipping!"
+    exit
+  end
+
+  # check for and handle date collisions (last write wins)
+  today = Time.now.strftime("%-m/%-d/%Y")
+  row_idx = w.num_rows - 2        # 1 for header, 1 for zero index
+
+  unless w.list[row_idx]['Date'].to_s == today
+    # add a new row if it's a new day
+    w.max_rows = w.num_rows + 1
+    row_idx += 1
+  end
+
+  # update the row
+  w.list[row_idx]["Date"] = today
+  balances.each { |k,v| w.list[row_idx][k] = v }
+
+  # save the spreadsheet
+  w.max_cols = w.num_cols
+  w.save
+  nil
 end
 
