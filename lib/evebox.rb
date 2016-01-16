@@ -1,5 +1,12 @@
+require "irb"
+require "irb/completion"
 require "eaal"
 require_relative "env"
+
+def console!
+  setup_tokens
+  IRB.start
+end
 
 def setup_tokens
   ENV.source(".env")
