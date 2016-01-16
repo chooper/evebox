@@ -66,23 +66,23 @@ module Evebox
   def self.create_database_tables!(db)
     # TODO(charles) set these types correctly
     db.create_table :wallet_transactions do
-      primary_key :evebox_id
-      String      :character_id
-      String      :character_name
-      String      :client_id
-      String      :client_name
-      String      :client_type_id
-      String      :journal_transaction_id
+      primary_key :eveboxID
+      String      :characterID
+      String      :characterName
+      String      :clientID
+      String      :clientName
+      String      :clientTypeID
+      String      :journalTransactionID
       String      :price
       String      :quantity
-      String      :station_id
-      String      :station_name
-      String      :transaction_datetime
-      String      :transaction_for
-      String      :transaction_id
-      String      :transaction_type
-      String      :type_id
-      String      :type_name
+      String      :stationID
+      String      :stationName
+      String      :transactionDateTime
+      String      :transactionFor
+      String      :transactionID
+      String      :transactionType
+      String      :typeID
+      String      :typeName
     end
     true
   rescue Sequel::DatabaseError
@@ -144,5 +144,17 @@ module Evebox
       t
     end
 
+    def save_transactions_to_db(db)
+      transactions.each do |t|
+        save_transaction_to_db(db, t)
+      end
+    end
+
+    def save_transaction_to_db(db, t)
+      t = t.to_hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+      t.delete(:attribs)
+      puts "XXX #{t}"
+      db[:wallet_transactions].insert(t)
+    end
   end
 end
