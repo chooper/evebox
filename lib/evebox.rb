@@ -87,7 +87,7 @@ module Evebox
       unique      [:characterID, :refID, :refTypeID]
     end
     true
-  rescue Sequel::DatabaseError
+  rescue Sequel::DatabaseError, PG::DuplicateTable
     # table probably already existed
     # TODO(charles) log this
     false
@@ -117,7 +117,7 @@ module Evebox
       unique      [:characterID, :transactionID]
     end
     true
-  rescue Sequel::DatabaseError
+  rescue Sequel::DatabaseError, PG::DuplicateTable
     # table probably already existed
     # TODO(charles) log this
     false
