@@ -1,10 +1,14 @@
 require "pry"
 require "eaal"
+require "sequel"
 require_relative "env"
 
 module Evebox
   def self.console!
     setup_tokens!
+    db = connect_database
+    create_database_tables!(db)
+
     eve = connect_eve(ENV["EVE_KEY_ID"], ENV["EVE_TOKEN"])
     print_connect_banner(eve)
     chars = Hash[*eve.Characters.characters.map do |c|
@@ -25,6 +29,57 @@ module Evebox
 
   def self.connect_eve(key_id, token)
     EAAL::API.new(key_id, token)
+  end
+
+=begin
+       @transactions=
+        [#<CharWalletTransactionsRowsetTransactionsRow:0x007f82d129e798
+          @attribs={},
+          @clientID="1175337233",
+          @clientName="Nero Farway",
+          @clientTypeID="1373",
+          @container={},
+          @journalTransactionID="12052833285",
+          @price="817866.00",
+          @quantity="3",
+          @stationID="60008494",
+          @stationName="Amarr VIII (Oris) - Emperor Family Academy",
+          @transactionDateTime="2015-12-27 04:14:52",
+          @transactionFor="personal",
+          @transactionID="4172615769",
+          @transactionType="buy",
+          @typeID="2404",
+          @typeName="Light Missile Launcher II">,
+=end
+
+  def self.connect_database
+    Sequel.connect('sqlite://evebox.sqlite')
+  end
+
+  def self.create_database_tables!(db)
+    # TODO(charles) set these types correctly
+    db.create_table :wallet_transactions do
+      primary_key :evebox_id
+      String      :client_id
+      String      :client_name
+      String      :client_type_id
+      String      :journal_transaction_id
+      String      :price
+      String      :quantity
+      String      :station_id
+      String      :station_name
+      String      :transaction_datetime
+      String      :transaction_for
+      String      :transaction_id
+      String      :transaction_type
+      String      :type_id
+      String      :type_name
+    end
+    true
+  rescue Sequel::DatabaseError
+    # table probably already existed
+    # TODO(charles) log this
+    false
   end
 
   def self.setup_tokens!
@@ -80,25 +135,5 @@ module Evebox
       t
     end
 
-=begin
-       @transactions=
-        [#<CharWalletTransactionsRowsetTransactionsRow:0x007f82d129e798
-          @attribs={},
-          @clientID="1175337233",
-          @clientName="Nero Farway",
-          @clientTypeID="1373",
-          @container={},
-          @journalTransactionID="12052833285",
-          @price="817866.00",
-          @quantity="3",
-          @stationID="60008494",
-          @stationName="Amarr VIII (Oris) - Emperor Family Academy",
-          @transactionDateTime="2015-12-27 04:14:52",
-          @transactionFor="personal",
-          @transactionID="4172615769",
-          @transactionType="buy",
-          @typeID="2404",
-          @typeName="Light Missile Launcher II">,
-=end
   end
 end

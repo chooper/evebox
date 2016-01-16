@@ -16,7 +16,9 @@ GEM
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
       slop (~> 3.4)
+    sequel (4.30.0)
     slop (3.6.0)
+    sqlite3 (1.3.11)
 
 PLATFORMS
   ruby
@@ -24,6 +26,8 @@ PLATFORMS
 DEPENDENCIES
   eaal
   pry
+  sequel
+  sqlite3
 
 BUNDLED WITH
    1.10.6
