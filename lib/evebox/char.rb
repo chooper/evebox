@@ -26,6 +26,19 @@ module Evebox
       sheet.name
     end
 
+    def journal
+      saved_scope = eve.scope
+      eve.scope = 'char'
+
+      args = {
+        "characterID" => character_id,
+        "rowCount" => 2560}
+      j = eve.WalletJournal(args).transactions
+
+      eve.scope = saved_scope
+      j
+    end
+
     def transactions
       saved_scope = eve.scope
       eve.scope = 'char'
@@ -37,6 +50,22 @@ module Evebox
 
       eve.scope = saved_scope
       t
+    end
+
+    def save_journal_to_db(db)
+      journal.each do |j|
+        save_journalentry_to_db(db, j)
+      end
+    end
+
+    def save_journalentry_to_db(db, j)
+      j = j.to_hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+      j.delete(:attribs)
+      j[:characterID] = character_id
+      j[:characterName] = character_name
+      db[:wallet_journal].insert(j)
+    rescue Sequel::UniqueConstraintViolation
+      nil
     end
 
     def save_transactions_to_db(db)

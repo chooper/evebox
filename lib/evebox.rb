@@ -15,6 +15,7 @@ module Evebox
     eve.Characters.characters.map do |eve_char|
       char = Char.new(eve, eve_char.characterID)
       char.save_transactions_to_db(db)
+      char.save_journal_to_db(db)
     end
   end
 
@@ -56,6 +57,43 @@ module Evebox
   end
 
   def self.create_database_tables!(db)
+    create_transaction_table!(db)
+    create_journal_table!(db)
+  end
+
+  def self.create_journal_table!(db)
+    # TODO(charles) set these types correctly
+    db.create_table :wallet_journal do
+      primary_key :eveboxID
+      String      :characterID
+      String      :characterName
+      String      :date
+      String      :refID
+      String      :refTypeID
+      String      :ownerName1
+      String      :ownerID1
+      String      :ownerName2
+      String      :ownerID2
+      String      :argName1
+      String      :argID1
+      String      :amount
+      String      :balance
+      String      :reason
+      String      :taxReceiverID
+      String      :taxAmount
+      String      :owner1TypeID
+      String      :owner2TypeID
+
+      unique      [:characterID, :refID, :refTypeID]
+    end
+    true
+  rescue Sequel::DatabaseError
+    # table probably already existed
+    # TODO(charles) log this
+    false
+  end
+
+  def self.create_transaction_table!(db)
     # TODO(charles) set these types correctly
     db.create_table :wallet_transactions do
       primary_key :eveboxID
