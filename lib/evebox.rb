@@ -5,21 +5,26 @@ require_relative "env"
 module Evebox
   def self.console!
     setup_tokens!
-    connect_eve!
-    print_connect_banner
+    eve = connect_eve(ENV["EVE_KEY_ID"], ENV["EVE_TOKEN"])
+    print_connect_banner(eve)
+    chars = Hash[*eve.Characters.characters.map do |c|
+      [c.name, Char.new(eve, c.characterID)]
+    end.flatten]
     binding.pry
   end
 
-  def self.print_connect_banner
+  def self.print_connect_banner(eve)
     puts "Character Name => Character ID"
-    $eve.Characters.characters.each { |c| puts "#{c.name} => #{c.characterID}" }
+    eve.Characters.characters.each do |c|
+      puts "#{c.name} => #{c.characterID}"
+    end
     puts "Welcome to EveBox!"
     puts "API references is at:"
     puts "http://wiki.eve-id.net/APIv2_Page_Index"
   end
 
-  def self.connect_eve!
-    $eve = EAAL::API.new(ENV["EVE_KEY_ID"], ENV["EVE_TOKEN"])
+  def self.connect_eve(key_id, token)
+    EAAL::API.new(key_id, token)
   end
 
   def self.setup_tokens!
@@ -55,22 +60,23 @@ module Evebox
   end
 
   class Char
-    def initialize(character_id)
+    def initialize(eve, character_id)
+      @eve = eve
       @character_id = character_id
     end
 
-    attr_reader :character_id
+    attr_reader :eve, :character_id
 
     def transactions
-      saved_scope = $eve.scope
-      $eve.scope = 'char'
+      saved_scope = eve.scope
+      eve.scope = 'char'
 
       args = {
         "characterID" => character_id,
         "rowCount" => 2560}
-      t = $eve.WalletTransactions(args).transactions
+      t = eve.WalletTransactions(args).transactions
 
-      $eve.scope = saved_scope
+      eve.scope = saved_scope
       t
     end
 
@@ -94,16 +100,5 @@ module Evebox
           @typeID="2404",
           @typeName="Light Missile Launcher II">,
 =end
-  end
-
-  def self.character_balances
-    chars = $eve.Characters.characters
-
-    $eve.scope = "char"
-    balances = {}
-    chars.each do |c|
-        balances[c.name] = $eve.AccountBalance("characterID" => c.characterID).accounts.select { |a| a.accountKey == "1000" }.first.balance
-    end
-    balances
   end
 end
