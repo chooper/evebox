@@ -32,27 +32,6 @@ module Evebox
     EAAL::API.new(key_id, token)
   end
 
-=begin
-       @transactions=
-        [#<CharWalletTransactionsRowsetTransactionsRow:0x007f82d129e798
-          @attribs={},
-          @clientID="1175337233",
-          @clientName="Nero Farway",
-          @clientTypeID="1373",
-          @container={},
-          @journalTransactionID="12052833285",
-          @price="817866.00",
-          @quantity="3",
-          @stationID="60008494",
-          @stationName="Amarr VIII (Oris) - Emperor Family Academy",
-          @transactionDateTime="2015-12-27 04:14:52",
-          @transactionFor="personal",
-          @transactionID="4172615769",
-          @transactionType="buy",
-          @typeID="2404",
-          @typeName="Light Missile Launcher II">,
-=end
-
   def self.connect_database
     url = ENV['DATABASE_URL'] || 'sqlite://evebox.sqlite'
     db = Sequel.connect(url, loggers: [Logger.new($stdout)])
