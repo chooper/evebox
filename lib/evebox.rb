@@ -60,6 +60,8 @@ module Evebox
     # TODO(charles) set these types correctly
     db.create_table :wallet_transactions do
       primary_key :evebox_id
+      String      :character_id
+      String      :character_name
       String      :client_id
       String      :client_name
       String      :client_type_id
