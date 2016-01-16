@@ -1,6 +1,6 @@
+require "pry"
 require "eaal"
 require_relative "env"
-require "pry"
 
 module Evebox
   def self.console!
