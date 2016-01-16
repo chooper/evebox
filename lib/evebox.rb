@@ -54,6 +54,48 @@ module Evebox
     end
   end
 
+  class Char
+    def initialize(character_id)
+      @character_id = character_id
+    end
+
+    attr_reader :character_id
+
+    def transactions
+      saved_scope = $eve.scope
+      $eve.scope = 'char'
+
+      args = {
+        "characterID" => character_id,
+        "rowCount" => 2560}
+      t = $eve.WalletTransactions(args).transactions
+
+      $eve.scope = saved_scope
+      t
+    end
+
+=begin
+       @transactions=
+        [#<CharWalletTransactionsRowsetTransactionsRow:0x007f82d129e798
+          @attribs={},
+          @clientID="1175337233",
+          @clientName="Nero Farway",
+          @clientTypeID="1373",
+          @container={},
+          @journalTransactionID="12052833285",
+          @price="817866.00",
+          @quantity="3",
+          @stationID="60008494",
+          @stationName="Amarr VIII (Oris) - Emperor Family Academy",
+          @transactionDateTime="2015-12-27 04:14:52",
+          @transactionFor="personal",
+          @transactionID="4172615769",
+          @transactionType="buy",
+          @typeID="2404",
+          @typeName="Light Missile Launcher II">,
+=end
+  end
+
   def self.character_balances
     chars = $eve.Characters.characters
 
