@@ -1,6 +1,7 @@
 require "pry"
 require "eaal"
 require "sequel"
+require 'logger'
 require_relative "env"
 
 module Evebox
@@ -54,7 +55,12 @@ module Evebox
 
   def self.connect_database
     url = ENV['DATABASE_URL'] || 'sqlite://evebox.sqlite'
-    Sequel.connect(url)
+    db = Sequel.connect(url, loggers: [Logger.new($stdout)])
+    # TODO(charles) split this out
+    log_level = ENV['SQL_DEBUG'] || 'debug'
+    log_level = log_level.downcase.to_sym
+    db.sql_log_level = log_level
+    db
   end
 
   def self.create_database_tables!(db)
