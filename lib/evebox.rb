@@ -53,7 +53,8 @@ module Evebox
 =end
 
   def self.connect_database
-    Sequel.connect('sqlite://evebox.sqlite')
+    url = ENV['DATABASE_URL'] || 'sqlite://evebox.sqlite'
+    Sequel.connect(url)
   end
 
   def self.create_database_tables!(db)
