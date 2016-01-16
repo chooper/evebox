@@ -51,6 +51,8 @@ module Evebox
       t[:characterID] = character_id
       t[:characterName] = character_name
       db[:wallet_transactions].insert(t)
+    rescue Sequel::UniqueConstraintViolation
+      nil
     end
   end
 end

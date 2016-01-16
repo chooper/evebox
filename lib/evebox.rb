@@ -63,6 +63,8 @@ module Evebox
       String      :transactionType
       String      :typeID
       String      :typeName
+
+      unique      [:characterID, :transactionID]
     end
     true
   rescue Sequel::DatabaseError
