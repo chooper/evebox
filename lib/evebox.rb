@@ -1,14 +1,13 @@
-require "irb"
-require "irb/completion"
 require "eaal"
 require_relative "env"
+require "pry"
 
 module Evebox
   def self.console!
     setup_tokens!
     connect_eve!
     print_connect_banner
-    IRB.start
+    binding.pry
   end
 
   def self.print_connect_banner
