@@ -106,9 +106,28 @@ module Evebox
     def initialize(eve, character_id)
       @eve = eve
       @character_id = character_id
+      @character_name = nil
     end
 
     attr_reader :eve, :character_id
+
+    def character_name
+      @character_name ||= character_name!
+    end
+
+    def character_name!
+      saved_scope = eve.scope
+      eve.scope = 'char'
+
+      args = {
+        "characterID" => character_id,
+      }
+
+      sheet = eve.CharacterSheet(args)
+
+      eve.scope = saved_scope
+      sheet.name
+    end
 
     def transactions
       saved_scope = eve.scope
@@ -132,7 +151,8 @@ module Evebox
     def save_transaction_to_db(db, t)
       t = t.to_hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
       t.delete(:attribs)
-      puts "XXX #{t}"
+      t[:characterID] = character_id
+      t[:characterName] = character_name
       db[:wallet_transactions].insert(t)
     end
   end
