@@ -6,6 +6,18 @@ require_relative "evebox/char"
 require_relative "env"
 
 module Evebox
+  def self.sync!
+    setup_tokens!
+    db = connect_database
+    create_database_tables!(db)
+    eve = connect_eve(ENV["EVE_KEY_ID"], ENV["EVE_TOKEN"])
+
+    eve.Characters.characters.map do |eve_char|
+      char = Char.new(eve, eve_char.characterID)
+      char.save_transactions_to_db(db)
+    end
+  end
+
   def self.console!
     setup_tokens!
     db = connect_database
