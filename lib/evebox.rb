@@ -6,7 +6,21 @@ require_relative "env"
 module Evebox
   def self.console!
     setup_tokens!
+    connect_eve!
+    print_connect_banner
     IRB.start
+  end
+
+  def self.print_connect_banner
+    puts "Character Name => Character ID"
+    $eve.Characters.characters.each { |c| puts "#{c.name} => #{c.characterID}" }
+    puts "Welcome to EveBox!"
+    puts "API references is at:"
+    puts "http://wiki.eve-id.net/APIv2_Page_Index"
+  end
+
+  def self.connect_eve!
+    $eve = EAAL::API.new(ENV["EVE_KEY_ID"], ENV["EVE_TOKEN"])
   end
 
   def self.setup_tokens!
@@ -39,13 +53,6 @@ module Evebox
       ENV["EVE_TOKEN"] = token
       save_env!
     end
-
-    $eve = EAAL::API.new(ENV["EVE_KEY_ID"], ENV["EVE_TOKEN"])
-    puts "Character Name => Character ID"
-    $eve.Characters.characters.each { |c| puts "#{c.name} => #{c.characterID}" }
-    puts "Welcome to EveBox!"
-    puts "API references is at:"
-    puts "http://wiki.eve-id.net/APIv2_Page_Index"
   end
 
   def self.character_balances
