@@ -20,7 +20,7 @@ module Evebox
     end
     puts "Welcome to EveBox!"
     puts "API references is at:"
-    puts "http://wiki.eve-id.net/APIv2_Page_Index"
+    puts "https://eveonline-third-party-documentation.readthedocs.org/en/latest/xmlapi/intro/"
   end
 
   def self.connect_eve(key_id, token)
