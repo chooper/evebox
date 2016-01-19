@@ -14,6 +14,7 @@ module Evebox
     eve = EveAPI.new(ENV["EVE_KEY_ID"], ENV["EVE_TOKEN"])
 
     eve.characters.map do |char|
+      char.save_accounts_to_db(db)
       char.save_transactions_to_db(db)
       char.save_journal_to_db(db)
     end
@@ -50,8 +51,27 @@ module Evebox
   end
 
   def self.create_database_tables!(db)
+    create_account_table!(db)
     create_transaction_table!(db)
     create_journal_table!(db)
+  end
+
+  def self.create_account_table!(db)
+    db.create_table :wallet_accounts do
+      primary_key :eveboxID
+      String      :characterID
+      String      :characterName
+      Time        :date
+      String      :accountID
+      String      :accountKey
+      String      :balance
+      unique      [:characterID, :accountID, :date]
+    end
+    true
+  rescue Sequel::DatabaseError, PG::DuplicateTable
+    # table probably already existed
+    # TODO(charles) log this
+    false
   end
 
   def self.create_journal_table!(db)

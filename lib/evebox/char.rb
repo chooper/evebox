@@ -52,6 +52,36 @@ module Evebox
       t
     end
 
+    def wallet_accounts
+      saved_scope = eve.scope
+      eve.scope = 'char'
+
+      args = {
+        "characterID" => character_id}
+
+      accounts = eve.AccountBalance(args).accounts
+
+      eve.scope = saved_scope
+      accounts
+    end
+
+    def save_accounts_to_db(db)
+      wallet_accounts.each do |a|
+        save_account_to_db(db, a)
+      end
+    end
+
+    def save_account_to_db(db, a)
+      a = a.to_hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+      a.delete(:attribs)
+      a[:characterID] = character_id
+      a[:characterName] = character_name
+      a[:date] = Time.new.getutc
+      db[:wallet_accounts].insert(a)
+    rescue Sequel::UniqueConstraintViolation
+      nil
+    end
+
     def save_journal_to_db(db)
       journal.each do |j|
         save_journalentry_to_db(db, j)
