@@ -2,6 +2,7 @@ require "pry"
 require "eaal"
 require "sequel"
 require 'logger'
+require_relative "evebox/eveapi"
 require_relative "evebox/char"
 require_relative "env"
 
@@ -10,10 +11,9 @@ module Evebox
     setup_tokens!
     db = connect_database
     create_database_tables!(db)
-    eve = connect_eve(ENV["EVE_KEY_ID"], ENV["EVE_TOKEN"])
+    eve = EveAPI.new(ENV["EVE_KEY_ID"], ENV["EVE_TOKEN"])
 
-    eve.Characters.characters.map do |eve_char|
-      char = Char.new(eve, eve_char.characterID)
+    eve.characters.map do |char|
       char.save_transactions_to_db(db)
       char.save_journal_to_db(db)
     end
@@ -24,26 +24,19 @@ module Evebox
     db = connect_database
     create_database_tables!(db)
 
-    eve = connect_eve(ENV["EVE_KEY_ID"], ENV["EVE_TOKEN"])
+    eve = EveAPI.new(ENV["EVE_KEY_ID"], ENV["EVE_TOKEN"])
     print_connect_banner(eve)
-    chars = Hash[*eve.Characters.characters.map do |c|
-      [c.name, Char.new(eve, c.characterID)]
-    end.flatten]
     binding.pry
   end
 
   def self.print_connect_banner(eve)
     puts "Character Name => Character ID"
-    eve.Characters.characters.each do |c|
-      puts "#{c.name} => #{c.characterID}"
+    eve.characters.each do |c|
+      puts "#{c.character_name} => #{c.character_id}"
     end
     puts "Welcome to EveBox!"
     puts "API references is at:"
     puts "https://eveonline-third-party-documentation.readthedocs.org/en/latest/xmlapi/intro/"
-  end
-
-  def self.connect_eve(key_id, token)
-    EAAL::API.new(key_id, token)
   end
 
   def self.connect_database
