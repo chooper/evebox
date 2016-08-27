@@ -31,6 +31,37 @@ module Evebox
       @@logger ||= Logger.new($stdout)
     end
 
+    # Returns the "best" order for given items and direction; specifically:
+    # * selects the loweset sell order (direction == :sell)
+    # * selects the highest buy order (direction == :buy)
+    #
+    # Input:
+    # * direction (Symbol) :sell or :buy
+    # * item_info (Hash) where keys are type names and values are from
+    #                    fetch_item_info
+    def self.select_top_orders_for_items(direction, item_info)
+      # FIXME this is hideous
+      if direction == :sell
+        select_method = :first
+      elsif direction == :buy
+        select_method = :last
+      else
+        raise ArgumentError("direction is expected to be :sell or :buy")
+      end
+
+      top_orders = {}
+      item_info.keys.each do |type_name|
+        top_order = item_info[type_name].sort_by do |hub, market_data|
+          market_data[direction.to_s]["fivePercent"]
+        end.send(select_method)
+        top_orders[type_name] = {
+          system:       top_order.first,
+          five_percent: top_order.last[direction.to_s]["fivePercent"],
+          }
+      end
+      top_orders
+    end
+
     def self.find_regional_arbitrage
       item_info = {}
       ItemTypes.each do |type_id, type_name|
@@ -38,29 +69,11 @@ module Evebox
       end
 
       # identify lowest sell orders
-      lowest_sell_orders = {}
-      item_info.keys.each do |type_name|
-        lowest_sell_order = item_info[type_name].sort_by do |hub, market_data|
-          market_data["sell"]["fivePercent"]
-        end.first
-        lowest_sell_orders[type_name] = {
-          system:       lowest_sell_order.first,
-          five_percent: lowest_sell_order.last["sell"]["fivePercent"],
-          }
-      end
+      lowest_sell_orders = select_top_orders_for_items(:sell, item_info)
       puts "XXX lowest_sell_order: #{lowest_sell_orders.inspect}"
 
       # identify highest buy orders
-      highest_buy_orders = {}
-      item_info.keys.each do |type_name|
-        highest_buy_order = item_info[type_name].sort_by do |hub, market_data|
-          market_data["buy"]["fivePercent"]
-        end.last
-        highest_buy_orders[type_name] = {
-          system:       highest_buy_order.first,
-          five_percent: highest_buy_order.last["buy"]["fivePercent"],
-          }
-      end
+      highest_buy_orders = select_top_orders_for_items(:buy, item_info)
       puts "XXX highest_buy_order: #{highest_buy_orders.inspect}"
 
       # identify quick sales
