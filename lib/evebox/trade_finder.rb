@@ -86,15 +86,10 @@ module Evebox
     end
 
     def self.find_regional_arbitrage
+      # identify lowest sell orders and highest buy orders
       item_info = fetch_all_items_market_data(ItemTypes, TradeHubSystems)
-
-      # identify lowest sell orders
       lowest_sell_orders = select_top_orders_for_items(:sell, item_info)
-      puts "XXX lowest_sell_order: #{lowest_sell_orders.inspect}"
-
-      # identify highest buy orders
       highest_buy_orders = select_top_orders_for_items(:buy, item_info)
-      puts "XXX highest_buy_order: #{highest_buy_orders.inspect}"
 
       # identify quick sales
       lowest_sell_orders.each do |type_name, sell_order|
