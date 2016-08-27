@@ -161,9 +161,10 @@ module Evebox
     #
     # Input:
     # * type_id (Integer) The Eve Online ID for the item type
-    # * systems (Array<String>) The Eve Online ID for the system;
-    #                           Eve Central will expect a String representing
-    #                           an integer
+    # * systems (HHash) The Eve Online ID for the system;
+    #                   Key: (String) Eve Central will expect a String representing
+    #                   an integer,
+    #                   Value: (String) The system name
     def self.fetch_item_info(type_id, systems)
       conn = Faraday.new(:url => 'http://api.eve-central.com') do |faraday|
         faraday.request  :url_encoded             # form-encode POST params
