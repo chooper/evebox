@@ -68,11 +68,25 @@ module Evebox
       top_orders
     end
 
-    def self.find_regional_arbitrage
+    # Fetch all items' market data from Eve Central
+    #
+    # Input:
+    # * items (Hash) key is type ID, value is type name
+    # * systems (Hash) key is system ID, value is system name
+    #
+    # Returns
+    # * (Hash) key is type name, value is another hash
+    #   * where key is a system name, value is a struct of market data
+    def self.fetch_all_items_market_data(items, systems)
       item_info = {}
-      ItemTypes.each do |type_id, type_name|
-        item_info[type_name] = fetch_item_info(type_id, TradeHubSystems)
+      items.each do |type_id, type_name|
+        item_info[type_name] = fetch_item_info(type_id, systems)
       end
+      item_info
+    end
+
+    def self.find_regional_arbitrage
+      item_info = fetch_all_items_market_data(ItemTypes, TradeHubSystems)
 
       # identify lowest sell orders
       lowest_sell_orders = select_top_orders_for_items(:sell, item_info)
@@ -90,6 +104,7 @@ module Evebox
         # display the quick sale if it has an adequate return on investment
         roi = margin / sell_order[:five_percent]
         if roi > MinimumROIForRegionalArbitrage
+          # TODO move the display elsewhere
           puts
           puts "*** Quick Sale opportunity for #{type_name}!"
           puts "*** #{sell_order[:system]} @ #{sell_order[:five_percent]} ISK =>"
