@@ -4,6 +4,7 @@ require "sequel"
 require 'logger'
 require_relative "evebox/eveapi"
 require_relative "evebox/char"
+require_relative "evebox/trade_finder"
 require_relative "env"
 
 module Evebox
