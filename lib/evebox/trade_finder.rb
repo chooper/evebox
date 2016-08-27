@@ -5,6 +5,7 @@ require 'faraday'
 module Evebox
   module TradeFinder
     MinimumROIForRegionalArbitrage = 0.05
+    MinimumROIForStationTrading    = 0.10
 
     ItemTypes = {
       34 => "Tritanium",
@@ -92,7 +93,7 @@ module Evebox
     # Currently prints the results to stdout
     #
     # Returns: nil
-    def self.find_regional_arbitrage
+    def self.find_regional_arbitrage_opportunities
       # identify lowest sell orders and highest buy orders
       item_info = fetch_all_items_market_data(ItemTypes, TradeHubSystems)
       lowest_sell_orders = select_top_orders_for_items(:sell, item_info)
@@ -112,6 +113,43 @@ module Evebox
           puts "*** #{sell_order[:system]} @ #{sell_order[:five_percent]} ISK =>"
           puts "*** #{buy_order[:system]} @ #{buy_order[:five_percent]} ISK>"
           puts "*** Margin: #{margin} ISK (roi = #{roi * 100}%)"
+          puts
+        end
+      end
+      nil
+    end
+
+    # Identifies opportunities for station trading. Specifically, this looks
+    # for items in a single system which have a spread larger than a
+    # pre-defined value. "Spread" here means the delta between the item's buy
+    # orders and sell orders
+    #
+    # Input:
+    # * system_id (Hash) Key is a String of an integer representing Eve's
+    #                    system ID, the value is the system name
+    #
+    # Currently prints the results to stdout
+    #
+    # Returns: nil
+    def self.find_station_trading_opportunities(system)
+      # identify lowest sell orders and highest buy orders
+      item_info = fetch_all_items_market_data(ItemTypes, system)
+      lowest_sell_orders = select_top_orders_for_items(:sell, item_info)
+      highest_buy_orders = select_top_orders_for_items(:buy, item_info)
+
+      lowest_sell_orders.each do |type_name, sell_order|
+        buy_order = highest_buy_orders[type_name]
+        # TODO use five percent still?
+        # TODO adjust by pennies?
+        spread = sell_order[:five_percent] - buy_order[:five_percent]
+        roi = spread / sell_order[:five_percent]
+        if roi > MinimumROIForStationTrading
+          # TODO move the display elsewhere
+          puts
+          puts "*** Station trading opportunities for #{type_name}"
+          puts "*** #{sell_order[:system]} @ #{sell_order[:five_percent]} ISK =>"
+          puts "*** #{buy_order[:system]} @ #{buy_order[:five_percent]} ISK>"
+          puts "*** Spread: #{spread} ISK (roi = #{roi * 100}%)"
           puts
         end
       end
