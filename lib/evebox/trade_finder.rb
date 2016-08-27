@@ -4,6 +4,8 @@ require 'faraday'
 
 module Evebox
   module TradeFinder
+    MinimumROIForRegionalArbitrage = 0.05
+
     ItemTypes = {
       34 => "Tritanium",
       35 => "Pyerite",
@@ -81,13 +83,14 @@ module Evebox
         buy_order = highest_buy_orders[type_name]
         margin = buy_order[:five_percent] - sell_order[:five_percent]
 
-        # display the quick sale if it has a positive margin
-        if margin > 0 # TODO base on percentage or something
+        # display the quick sale if it has an adequate return on investment
+        roi = margin / sell_order[:five_percent]
+        if roi > MinimumROIForRegionalArbitrage
           puts
           puts "*** Quick Sale opportunity for #{type_name}!"
           puts "*** #{sell_order[:system]} @ #{sell_order[:five_percent]} ISK =>"
           puts "*** #{buy_order[:system]} @ #{buy_order[:five_percent]} ISK>"
-          puts "*** Margin: #{margin} ISK"
+          puts "*** Margin: #{margin} ISK (roi = #{roi * 100}%)"
           puts
         end
       end
