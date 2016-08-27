@@ -85,6 +85,13 @@ module Evebox
       item_info
     end
 
+    # Identifies opportunities for regional arbitrage. Specifally, this one
+    # looks for "quick sales" where SystemA has sell orders that are cheaper
+    # than SystemB's buy orders
+    #
+    # Currently prints the results to stdout
+    #
+    # Returns: nil
     def self.find_regional_arbitrage
       # identify lowest sell orders and highest buy orders
       item_info = fetch_all_items_market_data(ItemTypes, TradeHubSystems)
