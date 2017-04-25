@@ -12,70 +12,60 @@ module Evebox
       @character_name ||= character_name!
     end
 
-    def character_name!
+    def with_scope(scope)
       saved_scope = eve.scope
-      eve.scope = 'char'
+      eve.scope = scope
 
-      args = {
-        "characterID" => character_id,
-      }
-
-      sheet = eve.CharacterSheet(args)
+      ret = yield
 
       eve.scope = saved_scope
-      sheet.name
+      ret
+    end
+
+    def character_name!
+      with_scope('char') do
+        args = {
+          "characterID" => character_id,
+        }
+
+        sheet = eve.CharacterSheet(args)
+        sheet.name
+      end
     end
 
     def journal
-      saved_scope = eve.scope
-      eve.scope = 'char'
-
-      args = {
-        "characterID" => character_id,
-        "rowCount" => 2560}
-      j = eve.WalletJournal(args).transactions
-
-      eve.scope = saved_scope
-      j
+      with_scope('char') do
+        args = {
+          "characterID" => character_id,
+          "rowCount" => 2560}
+        eve.WalletJournal(args).transactions
+      end
     end
 
     def transactions
-      saved_scope = eve.scope
-      eve.scope = 'char'
-
-      args = {
-        "characterID" => character_id,
-        "rowCount" => 2560}
-      t = eve.WalletTransactions(args).transactions
-
-      eve.scope = saved_scope
-      t
+      with_scope('char') do
+        args = {
+          "characterID" => character_id,
+          "rowCount" => 2560}
+        eve.WalletTransactions(args).transactions
+      end
     end
 
     def wallet_accounts
-      saved_scope = eve.scope
-      eve.scope = 'char'
+      with_scope('char') do
+        args = {
+          "characterID" => character_id}
 
-      args = {
-        "characterID" => character_id}
-
-      accounts = eve.AccountBalance(args).accounts
-
-      eve.scope = saved_scope
-      accounts
+        eve.AccountBalance(args).accounts
+      end
     end
 
     def market_orders
-      saved_scope = eve.scope
-      eve.scope = 'char'
-
-      args = {
-        "characterID" => character_id}
-
-      orders = eve.MarketOrders(args).orders
-
-      eve.scope = saved_scope
-      orders
+      with_scope('char') do
+        args = {
+          "characterID" => character_id}
+        eve.MarketOrders(args).orders
+      end
     end
 
     def save_accounts_to_db(db)

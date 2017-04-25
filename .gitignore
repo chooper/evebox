@@ -39,3 +39,6 @@ build/
 
 *.csv
 *.sqlite
+
+# vim
+.*.swp
