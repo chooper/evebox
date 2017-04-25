@@ -65,6 +65,19 @@ module Evebox
       accounts
     end
 
+    def market_orders
+      saved_scope = eve.scope
+      eve.scope = 'char'
+
+      args = {
+        "characterID" => character_id}
+
+      orders = eve.MarketOrders(args).orders
+
+      eve.scope = saved_scope
+      orders
+    end
+
     def save_accounts_to_db(db)
       wallet_accounts.each do |a|
         save_account_to_db(db, a)

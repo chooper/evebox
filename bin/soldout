@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+require "bundler"
+Bundler.require
+require "./lib/evebox"
+
+Evebox.setup_tokens!
+#db = Evebox.connect_database
+#Evebox.create_database_tables!(db)
+
+eve = Evebox::EveAPI.new(ENV["EVE_KEY_ID"], ENV["EVE_TOKEN"])
+
+# TODO enumerate characters
+char = eve.characters.first
+transactions = char.transactions.select {|x| x.transactionType == 'sell'}
+open_orders = char.market_orders
+
+# find items that were sold out
+sold_types = transactions.group_by(&:typeID)
+sold_out_type_ids = sold_types.keys - open_orders.collect(&:typeID)
+
+# map type IDs back to type names
+sold_out_type_names = sold_out_type_ids.map {|id| sold_types[id].first.typeName}
+
+# display
+puts "The following items are sold out:"
+sold_out_type_names.sort.each {|item| puts "* #{item}"}
